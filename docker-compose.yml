@@ -1,0 +1,33 @@
+version: '3.9'
+
+services:
+
+  cli:
+    image: ghcr.io/andrejvysny/php-cli:8.1
+    volumes:
+      - .:/var/www
+
+  database:
+    image: postgres:${POSTGRES_VERSION:-15}-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-!ChangeMe!}
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+    ports:
+      - "5432"
+    volumes:
+      - database_data:/var/lib/postgresql/data:rw
+      # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
+      # - ./docker/db/data:/var/lib/postgresql/data:rw
+
+  web:
+    image: ghcr.io/andrejvysny/php-apache:8.1
+    ports:
+      - 80:80
+    environment:
+      DATABASE_URL: postgresql://app:!ChangeMe!@database:5432/app?serverVersion=15&charset=utf8
+    volumes:
+      - .:/var/www/html
+
+volumes:
+  database_data:
